@@ -7,8 +7,9 @@ const app = createApp({
 
         const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
 
-        const title = ref('Filmes Populares');
+        const title = ref('Filmes em Cartaz');
         const movies = ref([]);
+        const selectedMovie = ref(null);
         const isLoading = ref(true);
 
         const getImageUrl = (posterPath) => {
@@ -18,8 +19,8 @@ const app = createApp({
             return `${imageBaseUrl}${posterPath}`;
         };
 
-        const fetchPopularMovies = async () => {
-            const url = `https://api.themoviedb.org/3/movie/popular?api_key=${API_KEY}&language=pt-BR`;
+        const fetchNowPlayingMovies = async () => {
+            const url = `https://api.themoviedb.org/3/movie/now_playing?api_key=${API_KEY}&language=pt-BR`;
             
             try {
                 const response = await axios.get(url);
@@ -30,21 +31,48 @@ const app = createApp({
                 
             } catch (error) {
                 console.error("Erro ao buscar filmes:", error);
-                title.value = "Erro ao carregar filmes (Verifique a API Key)"; 
+                title.value = "Erro ao carregar filmes"; 
             } finally {
                 isLoading.value = false;
             }
         };
 
+        const fetchMovieDetails = async (movieId) => {
+            isLoading.value = true;
+            const url = `https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}&language=pt-BR`;
+            try {
+                const response = await axios.get(url);
+                selectedMovie.value = response.data;
+                title.value = selectedMovie.value.title;
+            } catch (error) {
+                console.error("Erro ao buscar detalhes do filme:", error);
+                title.value = "Erro ao carregar detalhes";
+            } finally {
+                isLoading.value = false;
+            }
+        };
+
+        const selectMovie = (movie) => {
+            fetchMovieDetails(movie.id);
+        };
+
+        const goBack = () => {
+            selectedMovie.value = null;
+            title.value = 'Filmes em Cartaz';
+        };
+
         onMounted(() => {
-            fetchPopularMovies(); 
+            fetchNowPlayingMovies(); 
         });
 
         return {
             title,
             movies,
+            selectedMovie,
             isLoading,
-            getImageUrl
+            getImageUrl,
+            selectMovie,
+            goBack
         };
     }
 });

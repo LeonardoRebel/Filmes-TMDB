@@ -3,40 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Filmes Populares (Simples)</title>
-    <link rel="stylesheet" href="style.css">
+    <title>TMDB API com Vue.js</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px; }
+        #app { max-width: 1200px; margin: auto; }
+        h1 { text-align: center; }
+        .loading, .error { text-align: center; font-size: 1.5em; padding: 40px; }
+        .movie-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .movie-card { cursor: pointer; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .movie-card:hover { transform: scale(1.05); }
+        .movie-card img { max-width: 100%; display: block; }
+        .movie-card h3 { font-size: 1em; padding: 10px; margin: 0; text-align: center; }
+        .back-button { display: inline-block; margin-bottom: 20px; padding: 10px 15px; background-color: #007bff; color: white; text-decoration: none; border-radius: 5px; }
+        .movie-details { display: flex; gap: 30px; background: white; padding: 20px; border-radius: 8px; }
+        .movie-details img { max-width: 300px; border-radius: 8px; }
+        .movie-details-info h2 { margin-top: 0; }
+        .movie-details-info p { line-height: 1.6; }
+    </style>
 </head>
 <body>
 
     <div id="app">
-        
-        <header>
-            <h1>{{ title }} 🍿</h1>
-        </header>
+        <h1 v-text="title"></h1>
 
-        <main>
-            <div v-if="isLoading" class="loading-message">
-                Carregando filmes...
-            </div>
+        <div v-if="isLoading" class="loading">
+            Carregando...
+        </div>
 
-            <div v-else class="movie-grid">
-                
-                <div v-for="movie in movies" :key="movie.id" class="movie-card">
-                    <img :src="getImageUrl(movie.poster_path)" :alt="movie.title" />
-                    
-                    <div class="movie-info">
-                        <h3>{{ movie.title }}</h3>
-                        <span class="movie-score">⭐ {{ movie.vote_average.toFixed(1) }}</span>
-                    </div>
+        <div v-else-if="selectedMovie">
+            <a href="#" @click.prevent="goBack" class="back-button">← Voltar para a lista</a>
+            <div class="movie-details">
+                <img :src="getImageUrl(selectedMovie.poster_path)" :alt="selectedMovie.title">
+                <div class="movie-details-info">
+                    <h2>{{ selectedMovie.title }} ({{ new Date(selectedMovie.release_date).getFullYear() }})</h2>
+                    <p><strong>Sinopse:</strong> {{ selectedMovie.overview || 'Não disponível.' }}</p>
+                    <p><strong>Nota:</strong> {{ selectedMovie.vote_average.toFixed(1) }} / 10</p>
+                    <p><strong>Data de Lançamento:</strong> {{ new Date(selectedMovie.release_date).toLocaleDateString('pt-BR') }}</p>
                 </div>
-
             </div>
-        </main>
+        </div>
+
+        <div v-else-if="movies.length > 0" class="movie-grid">
+            <div v-for="movie in movies" :key="movie.id" class="movie-card" @click="selectMovie(movie)">
+                <img :src="getImageUrl(movie.poster_path)" :alt="movie.title">
+                <h3>{{ movie.title }}</h3>
+            </div>
+        </div>
+        
+        <div v-else class="error">
+            Nenhum filme encontrado ou ocorreu um erro.
+        </div>
     </div>
 
-    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-
     <script src="app.js"></script>
 
 </body>
